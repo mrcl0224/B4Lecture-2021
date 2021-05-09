@@ -36,6 +36,8 @@ for i in range ((y.shape[0]-window) // shift):
     spec = sp.fftpack.fft(tmp)
     spec_wave.append(spec)
 
+#print(np.array(spec_wave).shape)
+
 #フーリエ変換の結果には虚数が含まれるため、絶対値を取る。
 #転置することで、縦軸が周波数、横軸が時間となる。
 #振幅をデシベルに変換。y = 20log(x) (参照：https://www.onosokki.co.jp/HP-WK/c_support/newreport/decibel/dB.pdf)
@@ -67,6 +69,8 @@ for i in range(np.array(spec_wave).shape[0]):
     re = sp.fftpack.ifft(spec_wave[i])
     for j in range(np.array(re).shape[0]):
         re_wave[i*shift + j] += np.abs(re[j])
+
+print(re_wave.shape)
 
 result_re = np.abs(np.array(re_wave))
 
