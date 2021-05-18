@@ -1,0 +1,8 @@
+# High Pass filter (HPF)
+![image](ex_2/haopeng_geng/fig/arctic_b0340_filter_type_HPF_cutoff_frequency_2000.png)
+# Low Pass filter (LPF)
+![image](ex_2/haopeng_geng/fig/arctic_b0340_filter_type_LPF_cutoff_frequency_2000.png)
+# Band Pass filter (BPF)
+![image](ex_2/haopeng_geng/fig/arctic_b0340_filter_type_BPF_lower_cutoff_frequency_2000_upper_cutoff_frequency_4000.png)
+# Band Stop filter (BSF)
+![image](ex_2/haopeng_geng/fig/arctic_b0340_filter_type_BSF_lower_cutoff_frequency_2000_upper_cutoff_frequency_4000.png)
