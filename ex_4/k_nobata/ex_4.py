@@ -23,11 +23,11 @@ def autocorrelation(data, order=None):
     """
     len_data = len(data)
     ac = np.zeros(len_data)
-    if order == None:
+    if order is None:
         order = len_data
     for l in range(order):
         for i in range(len_data - l):
-            ac[l] += data[i]*data[i+l]
+            ac[l] += data[i] * data[i+l]
         
     return ac
 
@@ -100,9 +100,9 @@ def cepstrum(data):
         cepstrum
     
     """
-    fft_data = np.fft.fft(data) #fft
-    power_spec = np.log10(np.abs(fft_data))
-    cep = np.real(np.fft.ifft(power_spec)) #ifft
+    power_spe = np.fft.fft(data) 
+    log_power_spec = np.log10(np.abs(power_spe))
+    cep = np.real(np.fft.ifft(log_power_spec)) 
     
     return cep
 
@@ -131,10 +131,9 @@ def f0_cep(data, sr, F_size, overlap, S_num, lif):
     """
     win = np.hamming(F_size)
     f0 = np.zeros(S_num)
-    len_data = len(data)
     for i in range(S_num):
-        data_ = data[i*overlap:i*overlap+F_size] * win
-        cep = cepstrum(data_)
+        windata = data[i*overlap:i*overlap+F_size] * win
+        cep = cepstrum(windata)
         
         m0 = np.argmax(cep[lif:len(cep)//2]) + lif
         f0[i] = sr / m0
@@ -142,7 +141,7 @@ def f0_cep(data, sr, F_size, overlap, S_num, lif):
     return f0
 
 #基本周波数とスペクトログラムのプロット
-def f_plot(f0_a, f0_c, data, Ts, sr):
+def f_plot(f0_a, f0_c, data, Ts, sr, lif):
     """
     parameters
     --
@@ -159,20 +158,21 @@ def f_plot(f0_a, f0_c, data, Ts, sr):
     """
     plt.figure(figsize=(10,8))
     plt.specgram(data, Fs=sr, cmap="rainbow", scale_by_freq="True")
-    xa_axis = np.arange(0, Ts, Ts/len(f0_a))
-    xc_axis = np.arange(0, Ts, Ts/len(f0_c))
-    plt.plot(xa_axis, f0_a, label="Autocorrelation", color="blue")
-    plt.plot(xc_axis, f0_c, label="Cepstrum", color="green")
+    xa_0 = Ts/len(f0_a)
+    xc_0 = Ts/len(f0_c)
+    xa_axis = np.arange(xa_0, Ts, xa_0)
+    xc_axis = np.arange(xc_0, Ts, xc_0)
+    plt.plot(xa_axis, f0_a[1:], label="Autocorrelation", color="blue")
+    plt.plot(xc_axis, f0_c[1:], label="Cepstrum", color="green")
     plt.xlabel("Times[s]", fontsize=15)
     plt.ylabel("Frequency[Hz]", fontsize=15)
     plt.legend()
     plt.colorbar()
     plt.tight_layout()
-    #plt.savefig('spectrogram.png')
+    plt.savefig("spectrogram"+str(lif)+".png")
     plt.show()
     plt.close()
 
-#ケプストラム法によるスペクトル包絡
 def cep_m(data, lif):
     """
     parameters
@@ -283,7 +283,7 @@ def lpc_m(data, order, F_size):
     return lpc_env
 
 #スペクトル包絡描画
-def spe(log, cep, lpc, F_size, sr):
+def spe(log, cep, lpc, F_size, sr, lif, deg):
     """
     parameters
     ---
@@ -308,11 +308,10 @@ def spe(log, cep, lpc, F_size, sr):
     plt.ylabel("Log amplitude spectrum[dB]", fontsize=15)
     plt.legend()
     plt.tight_layout()
-    plt.savefig("spectrum32_64.png")
+    plt.savefig("spectrum"+str(lif)+"_"+str(deg)+".png")
     plt.show()
     plt.close()
 
-#メイン
 def main(args):
     #f_name = "/Users/nobatakoki/B4輪行/ccnobata/新規録音.wav"
     f_name = args.fname
@@ -331,7 +330,7 @@ def main(args):
     #基本周波数計算&プロット
     f0_c = f0_cep(data, sr, F_size, overlap, S_num, lif)
     f0_a = f0_ac(data, sr, F_size, overlap, S_num)
-    f_plot(f0_a, f0_c, data, Ts, sr)
+    f_plot(f0_a, f0_c, data, Ts, sr, lif)
     
     #スペクトル包絡用
     p = 0.97

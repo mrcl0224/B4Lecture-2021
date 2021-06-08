@@ -40,7 +40,7 @@ def reg_2d(data, order, nc):
     I = np.eye(order + 1)
     w = np.dot(np.dot(np.linalg.inv(I * nc + np.dot(phi.T, phi)), phi.T), y)
 
-    reg_x = np.arange(min(x), max(x), 0.01)
+    reg_x = np.arange(min(x), max(x), 0.0001)
     reg_y = np.zeros(len(reg_x))
 
     for i in range(len(reg_x)):
@@ -94,30 +94,32 @@ def reg_3d(data, order_x, order_y, nc):
     ax.set_xlabel('y')
     ax.set_xlabel('z')
     ax.view_init(20, 210)
-    ax.scatter(x, y, z, label='Original data', color = 'r')
+    ax.scatter(x, y, z, label='Original data', color='r')
     plt.legend()
-    ax.plot_wireframe(reg_x, reg_y, reg_z, color='g', label='Regression assumption', linewidth = 0.2)
+    ax.plot_wireframe(reg_x, reg_y, reg_z, color='g',
+                      label='Regression assumption', linewidth=0.2)
     ax.legend()
     plt.savefig("result_3d.png")
 
+
 def main():
     parser = argparse.ArgumentParser(
-        description='Program for plotting regression equation.\nFile name, order for regression equation are required.')
+        description='Program for plotting regression equation.\nFile name and order for regression equation are required.')
     parser.add_argument("-f", dest="filename", help='Filename', required=True)
     parser.add_argument("-ox", dest="order_x", type=int,
                         help='Regression order for x', required=True)
     parser.add_argument("-oy", dest="order_y", type=int,
-                        help='Regression order for y (optional). Default = 3', required=False, default = 3)
+                        help='Regression order for y (optional). Default = 3', required=False, default=3)
     parser.add_argument("-nc", dest="nc", type=int,
-                        help='Normalization coefficient (optional). Default = 0', required=False, default = 0)
+                        help='Normalization coefficient (optional). Default = 0', required=False, default=0)
     args = parser.parse_args()
     data = csv_open(args.filename)
     dimension = np.shape(data)[1]
     if dimension == 3:
-            reg_3d(data, args.order_x, args.order_y, args.nc)
+        reg_3d(data, args.order_x, args.order_y, args.nc)
     else:
         reg_2d(data, args.order_x, args.nc)
 
+
 if __name__ == "__main__":
     main()
-
