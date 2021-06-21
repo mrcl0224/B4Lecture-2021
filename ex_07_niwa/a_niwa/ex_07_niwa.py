@@ -85,12 +85,15 @@ def gaussian(x, mean_x, sd_x, dim):
     #print("1 / (pow(2 * math.pi, dim/2) : ", 1 / (pow(2 * math.pi, dim/2)))
     #print("pow(sd_x, 1/2) : ", pow(sd_x, 1/2))
     #print("np.linalg.inv(sd_x) : ", np.linalg.inv(sd_x).shape)
-    print("math.exp((-(x - mean_x).T @ np.linalg.inv(sd_x) @ (x - mean_x))/2) : ", np.exp((-(x - mean_x) @ np.linalg.inv(sd_x) @ (x - mean_x).T)/2))
+    #print("math.exp((-(x - mean_x).T @ np.linalg.inv(sd_x) @ (x - mean_x))/2) : ", np.exp((-(x - mean_x) @ np.linalg.inv(sd_x) @ (x - mean_x).T)/2))
     #print("x - mean_x : ", (x - mean_x).shape)
     #print("(x - mean_x).T : ", ((x - mean_x).T).shape)
 
-    n = (1 / (pow(2 * math.pi, dim/2) * pow(np.linalg.norm(sd_x, ord=2), 1/2))) * np.exp((-(x - mean_x) @ np.linalg.inv(sd_x) @ (x - mean_x).T)/2)
-    print("gaussian : " , n)
+    n = np.zeros(x.shape[0])
+
+    for i in range(x.shape[0]):
+        n = (1 / (pow(2 * math.pi, dim/2) * pow(np.linalg.norm(sd_x, ord=2), 1/2))) * np.exp((-(x[i] - mean_x) @ np.linalg.inv(sd_x) @ (x[i] - mean_x).T)/2)
+    #print("gaussian : " , n)
 
     return n
 
@@ -98,7 +101,7 @@ def em_algorithm(x, mean_x, sd_x, k, dim, pi):
 
     #E step
 
-    gamma = np.zeros([k, x.shape[0], x.shape[1]])
+    gamma = np.zeros([k, x.shape[0]])
 
     x_gauss = np.zeros([k, x.shape[0], x.shape[1]])
 
@@ -107,34 +110,45 @@ def em_algorithm(x, mean_x, sd_x, k, dim, pi):
         x_gauss[i] +=  gaussian(x, mean_x[i], sd_x[i], dim)
 
     #print(x_gauss)
-    #print(pi)
+    print(pi)
 
-    #print(np.sum(pi * x_gauss))
+    print(np.sum(pi * x_gauss))
 
     for i in range(k):
 
         gamma[i] += (pi[i] * x_gauss[i]) / (np.sum(pi * x_gauss))
 
+    print("gamma : ", gamma.shape)
+
     n_k = np.sum(gamma, axis = 1)
-    #print(n_k)
+    print("n_k : ", n_k)
 
     #M step
 
-    mean_x_new = 1/(pi * x.shape[0]) * np.sum(gamma * x)
+    mean_x_new = np.zeros(k)
+    sd_x_new = np.zeros([k, dim, dim])
 
-    sd_x_new = 1/(pi * x.shape[0]) * np.sum(gamma * x) * (x - mean_x_new) @ (x - mean_x_new).T
+    for i in range(k):
 
-    pi_new = n_k / x.shape[0]
+        for i in range(x.shape[0]):
+
+            mean_x_new = 1/n_k * np.sum(gamma * x)
+
+            sd_x_new = 1/n_k * np.sum(gamma * x[i]) * (x[i] - mean_x_new) @ (x[i] - mean_x_new).T
+
+        pi_new = n_k / x.shape[0]
 
     return mean_x_new, sd_x_new, pi_new
 
 def likelihood(x, mean_x, sd_x, pi, dim, k):
 
-    tmp = 0
+    tmp = np.zeros(x.shape[0])
 
     for i in range(k):
 
-        tmp += pi[i] * (1 / (pow(2 * math.pi, dim/2) * pow(sd_x[i], 1/2))) * math.exp((-(x - mean_x[i]).T * np.linalg.inv(sd_x[i]) * (x - mean_x[i]))/2)
+        for j in range(x.shape[0]):
+
+            tmp[j] += pi[i] * (1 / (pow(math.pi, dim/2) * pow(np.linalg.norm(sd_x[i], ord=2), 1/2))) * np.exp((-(x[j] - mean_x[i]) @ np.linalg.inv(sd_x[i]) @ (x[j] - mean_x[i]).T)/2)
 
     n = np.sum(np.log(tmp))
 
@@ -181,13 +195,15 @@ if __name__ == "__main__":
 
     L_new = 1
 
-    eps = 0.01
+    eps = 0.001
 
     while(L_new - L_old > 0.01):
 
         mean_x, sd_x, pi_k = em_algorithm(dt_np, mean_x, sd_x, k, dim, pi_k)
 
         L_old = L_new
+
+        print("sd_x : ", sd_x.shape)
 
         L_new = likelihood(dt_np, mean_x, sd_x, pi_k, dim, k)
 
